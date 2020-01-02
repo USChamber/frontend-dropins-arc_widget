@@ -1,0 +1,246 @@
+@import url('https://fonts.googleapis.com/css?family=Montserrat:400,700&display=swap');
+
+#ARC_Widget {
+    /* border: 1px solid #efefef; */
+    /* padding: 1em; */
+    text-align: center;
+    font-family: "Montserrat", Helvetica, Arial, sans-serif;
+}
+
+#ARC_SelectContainer {
+    width: 30%;
+    min-width: 200px;
+    margin: 0 auto;
+}
+
+/* select#ARC_Select {
+    padding: 10px 20px;
+    font-size: 18px;
+    border: 1px solid #f76855;
+    background: url('https://uschamber-webassets.s3.amazonaws.com/uschamber.com/interactives/arc/img/down-arrow.png') 96% / 7% no-repeat #e75845;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    color: #FFF;
+    border-radius: 0;
+    padding-right: 60px;
+} */
+
+.arc-images-list {
+    padding: 1em;
+}
+
+#ARC_Widget .arc-image-container {
+    position: relative;
+    width: 250px;
+    height: 140px;
+    overflow: hidden;
+    display: inline-block;
+    margin: .4em;
+    cursor: pointer;
+}
+
+.arc-image-container .arc-image-text {
+    color: transparent;
+    line-height: 150px;
+    font-weight: bold;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 10;
+    cursor: pointer;
+
+}
+
+.arc-image-container:hover .arc-image-text {
+    color: #fff;
+}
+
+.arc-image {
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center center;
+    transition: .2s all;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+}
+
+.arc-image-container:hover .arc-image {
+    filter: brightness(.5);
+    filter: blur(5px);
+    color: #FFF;
+}
+
+/** Darken the overlay **/
+.arc-image-container:hover .arc-image::before {
+    content: "";
+    background: rgba(0, 0, 0, .3);
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+}
+
+#ARC_Overlay {
+    position: fixed;
+    z-index: 99999;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100vh;
+    background: rgba(0, 0, 0, .3);
+}
+
+div#ARC_Lightbox {
+    width: 90%;
+    max-height: 80vh;
+    background: #2a2a2a;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 5px;
+    color: #FFF;
+    text-align: center;
+    overflow-x: hidden;
+}
+
+div#ARC_LightboxTopBar {
+    padding: 10px;
+    text-align: center;
+    border-bottom: 1px solid #555;
+}
+
+button#ARC_LightboxExit {
+    border: 0;
+    font-size: 18px;
+    padding: 5px 10px;
+    cursor: pointer;
+    float: right;
+    background: transparent;
+    color: #fff;
+    font-weight: bold;
+    height: 25px;
+    width: 25px;
+    background-image: url('https://uschamber-webassets.s3.amazonaws.com/uschamber.com/interactives/arc/img/close.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+h4#ARC_LightboxTitle {
+    color: #FFF;
+    display: inline-block;
+    margin: 5px;
+    font-family: "Montserrat", Helvetica, Arial, sans-serif;
+}
+
+img#ARC_LightboxImg {
+    max-height: 55vh;
+}
+
+div#ARC_LightboxControlPanel {
+    padding: 10px;
+    text-align: right;
+    font-family: "Montserrat", Helvetica, Arial, sans-serif;
+    background: #2a2a2a;
+    border-radius: 0 0 5px 5px;
+    border-top: 1px solid #555;
+}
+
+button#ARC_EmailSubmitBtn:before {
+    content: "";
+    background-image: url('https://uschamber-webassets.s3.amazonaws.com/uschamber.com/interactives/arc/img/paper-plane.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    height: 25px;
+    width: 25px;
+    position: absolute;
+    left: 7px;
+    top: 7px;
+}
+
+button#ARC_LightboxEmail:before {
+    content: "";
+    background-image: url('https://uschamber-webassets.s3.amazonaws.com/uschamber.com/interactives/arc/img/envelope.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    height: 25px;
+    width: 25px;
+    position: absolute;
+    left: 7px;
+    top: 7px;
+}
+
+a#ARC_LightboxDownload {
+    text-decoration: none;
+}
+
+a#ARC_LightboxDownload:before {
+    content: "";
+    background-image: url('https://uschamber-webassets.s3.amazonaws.com/uschamber.com/interactives/arc/img/download.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    height: 25px;
+    width: 25px;
+    position: absolute;
+    left: 7px;
+    top: 7px;
+}
+
+.control-panel-btn {
+    background: #e75845;
+    color: #FFF;
+    display: inline-block;
+    border: 1px solid #f76855;
+    border-radius: 1px;
+    font-size: 18px;
+    padding: 10px;
+    cursor: pointer;
+    margin: 5px;
+    font-weight: 400;
+    font-family: "Montserrat", Helvetica, Arial, sans-serif;
+    vertical-align: middle;
+    position: relative;
+    padding-left: 40px;
+    transition: .2s all;
+}
+
+.control-panel-btn:hover {
+    background: #f76855;
+    background-color: #f76855;
+}
+
+input#ARC_EmailAddress {
+    font-size: 18px;
+    padding: 4.5px;
+    vertical-align: middle;
+    font-family: "Montserrat", Helvetica, Arial, sans-serif;
+    margin: 5px;
+    width: 50%;
+}
+
+/* CAUTION: IE hackery ahead to fix the customized select box*/
+select::-ms-expand {
+    display: none;
+    /* remove default arrow on ie10 and ie11 */
+}
+
+/* target Internet Explorer 9 to undo the custom arrow */
+@media screen and(min-width: 0\0) {
+    select {
+        background: none;
+        padding: 5px;
+    }
+}

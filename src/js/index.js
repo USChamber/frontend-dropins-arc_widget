@@ -1,12 +1,12 @@
 import "core-js/stable";
 import "regenerator-runtime/runtime";
 
-const filepath = `/${document.currentScript.getAttribute('filepath')}`;
+const filepath = `/ARC_Content/${document.currentScript.getAttribute('filepath')}`;
 console.log('filepath', filepath);
 
 (function () {
 
-    const lambdaBaseUrl = 'https://dev.uschamber.com/services/arc/files';
+    const lambdaBaseUrl = 'https://dev.uschamber.com/services/arc';
     // const lambdaBaseUrl = 'http://localhost:9999';
     const token = '__INSERT_PHOTO_WIDGET__';
     const s3BaseUrl = 'https://uschamber-webassets.s3.amazonaws.com/uschamber.com/interactives/arc'
@@ -78,6 +78,7 @@ console.log('filepath', filepath);
                 el: widgetContainer,
                 children: [buildSelector(currentFilter.id)]
             });
+            addImages('StateSpecific', getStateById('AL'))
         }
         toggleLoadingGif(widgetContainer);
         return images;
@@ -198,6 +199,7 @@ console.log('filepath', filepath);
         if (args.src) element.src = args.src || '';
         if (args.href) element.href = args.href || '';
         if (args.value) element.value = args.value || '';
+        if (args.placeholder) element.placeholder = args.placeholder || '';
         if (args.selected) element.selected = args.selected || null;
         for (const name in args.style) {
             element.style[name] = args.style[name];
@@ -264,10 +266,10 @@ console.log('filepath', filepath);
                     children: [{
                         el: new Element({ el: 'div', id: 'ARC_LightboxTopBar' }),
                         children: [{
-                            el: new Element({ el: 'h4', id: 'ARC_LightboxTitle', innerHTML: name })
+                            el: new Element({ el: 'button', id: 'ARC_LightboxExit', onclick: clickExitButton })
                         },
                         {
-                            el: new Element({ el: 'button', id: 'ARC_LightboxExit', onclick: clickExitButton })
+                            el: new Element({ el: 'h4', id: 'ARC_LightboxTitle', innerHTML: name })
                         }]
                     },
                     {
@@ -276,7 +278,7 @@ console.log('filepath', filepath);
                     {
                         el: new Element({ el: 'div', id: 'ARC_LightboxControlPanel' }),
                         children: [{
-                            el: new Element({ el: 'input', id: 'ARC_EmailAddress', name: 'email', type: 'email', style: { display: 'none' } })
+                            el: new Element({ el: 'input', id: 'ARC_EmailAddress', name: 'email', type: 'email', style: { display: 'none' }, placeholder: 'Enter Email Address' })
                         },
                         {
                             el: new Element({ el: 'button', id: 'ARC_EmailSubmitBtn', innerHTML: 'Send', className: 'control-panel-btn', style: { display: 'none' }, onclick: clickEmailSubmitButton })
@@ -334,11 +336,31 @@ console.log('filepath', filepath);
             if (!image) {
                 return false;
             }
-            if (!currentFilter || !currentFilter.id || currentFilter.id === 'None') {
+            if (!currentFilter || !currentFilter.id) {
                 return !image.stateSpecific;
             }
-            const imageName = image.name.toLowerCase();
-            return imageName.includes(`_${currentFilter.id.toLowerCase()} _`) || imageName.includes(currentFilter.name.toLowerCase());
+            if (currentFilter.id === 'None') {
+                currentFilter = states[1];
+            }
+            let included = false;
+            const name = image.name.toLowerCase();
+            const filterId = `_${currentFilter.id.toLowerCase()}_`;
+            const filterName = currentFilter.name.toLowerCase();
+            const filterNameUnderscored = filterName.split(' ').join('_');
+            if (name.includes(filterId)) {
+                return true;
+            }
+            if (name.includes(filterName) || name.includes(filterNameUnderscored)) {
+                // this is a fuzzy match. Don't want to include arkanasas with kansas or virginia for west virginia
+                included = true;
+                if (currentFilter.excludes) {
+                    const excludes = currentFilter.excludes.split(',');
+                    excludes.forEach(exclude => {
+                        if (name.includes(exclude)) included = false;
+                    });
+                }
+            }
+            return included;
         });
         console.log('Filtered to %s images', filtered.length);
         return filtered;
@@ -363,7 +385,7 @@ console.log('filepath', filepath);
      */
 
     const changeSelect = async ev => {
-        // states[0].name = 'Non State-specific Images';
+        // states.splice(0, 1);
         const stateImages = await addImages('StateSpecific', getStateById(ev.currentTarget.value));
         setupLazyLoading();
     }
@@ -461,7 +483,7 @@ console.log('filepath', filepath);
             return (globalVars.images);
         }
         try {
-            const response = await request('GET', `${lambdaBaseUrl}/dropbox/files`, { json: true, params: { filepath: filepath } });
+            const response = await request('GET', `${lambdaBaseUrl}/files`, { json: true, params: { filepath: filepath } });
             const tmp = findStateSpecificImages(response)
             globalVars.images = tmp.parsedImages;
             globalVars.containsStateSpecificImages = tmp.containsStateSpecificImages;
@@ -474,7 +496,8 @@ console.log('filepath', filepath);
 
     const sendImageViaEmail = async (emailAddress, downloadUrl, previewUrl, message) => {
         try {
-            const response = await request('POST', `${lambdaBaseUrl}/dropbox/email`, { body: { emailAddress: emailAddress, downloadUrl: downloadUrl, previewUrl: previewUrl, message: message } });
+            const baseUrl = 'https://a8qh996lbb.execute-api.us-east-1.amazonaws.com/stage/dropbox';
+            const response = await request('POST', `${baseUrl}/email`, { body: { emailAddress: emailAddress, downloadUrl: downloadUrl, previewUrl: previewUrl, message: message } });
             console.log('Successful Send', response);
             return (response);
         } catch (err) {
@@ -501,211 +524,216 @@ console.log('filepath', filepath);
         head.appendChild(style);
     }
 
-    const states = [
-        {
-            'name': 'Alabama',
-            'id': 'AL'
-        },
-        {
-            'name': 'Alaska',
-            'id': 'AK'
-        },
-        {
-            'name': 'Arizona',
-            'id': 'AZ'
-        },
-        {
-            'name': 'Arkansas',
-            'id': 'AR'
-        },
-        {
-            'name': 'California',
-            'id': 'CA'
-        },
-        {
-            'name': 'Colorado',
-            'id': 'CO'
-        },
-        {
-            'name': 'Connecticut',
-            'id': 'CT'
-        },
-        {
-            'name': 'Delaware',
-            'id': 'DE'
-        },
-        {
-            'name': 'Florida',
-            'id': 'FL'
-        },
-        {
-            'name': 'Georgia',
-            'id': 'GA'
-        },
-        {
-            'name': 'Hawaii',
-            'id': 'HI'
-        },
-        {
-            'name': 'Idaho',
-            'id': 'ID'
-        },
-        {
-            'name': 'Illinois',
-            'id': 'IL'
-        },
-        {
-            'name': 'Indiana',
-            'id': 'IN'
-        },
-        {
-            'name': 'Iowa',
-            'id': 'IA'
-        },
-        {
-            'name': 'Kansas',
-            'id': 'KS'
-        },
-        {
-            'name': 'Kentucky',
-            'id': 'KY'
-        },
-        {
-            'name': 'Louisiana',
-            'id': 'LA'
-        },
-        {
-            'name': 'Maine',
-            'id': 'ME'
-        },
-        {
-            'name': 'Maryland',
-            'id': 'MD'
-        },
-        {
-            'name': 'Massachusetts',
-            'id': 'MA'
-        },
-        {
-            'name': 'Michigan',
-            'id': 'MI'
-        },
-        {
-            'name': 'Minnesota',
-            'id': 'MN'
-        },
-        {
-            'name': 'Mississippi',
-            'id': 'MS'
-        },
-        {
-            'name': 'Missouri',
-            'id': 'MO'
-        },
-        {
-            'name': 'Montana',
-            'id': 'MT'
-        },
-        {
-            'name': 'Nebraska',
-            'id': 'NE'
-        },
-        {
-            'name': 'Nevada',
-            'id': 'NV'
-        },
-        {
-            'name': 'New Hampshire',
-            'id': 'NH'
-        },
-        {
-            'name': 'New Jersey',
-            'id': 'NJ'
-        },
-        {
-            'name': 'New Mexico',
-            'id': 'NM'
-        },
-        {
-            'name': 'New York',
-            'id': 'NY'
-        },
-        {
-            'name': 'North Carolina',
-            'id': 'NC'
-        },
-        {
-            'name': 'North Dakota',
-            'id': 'ND'
-        },
-        {
-            'name': 'Ohio',
-            'id': 'OH'
-        },
-        {
-            'name': 'Oklahoma',
-            'id': 'OK'
-        },
-        {
-            'name': 'Oregon',
-            'id': 'OR'
-        },
-        {
-            'name': 'Pennsylvania',
-            'id': 'PA'
-        },
-        {
-            'name': 'Rhode Island',
-            'id': 'RI'
-        },
-        {
-            'name': 'South Carolina',
-            'id': 'SC'
-        },
-        {
-            'name': 'South Dakota',
-            'id': 'SD'
-        },
-        {
-            'name': 'Tennessee',
-            'id': 'TN'
-        },
-        {
-            'name': 'Texas',
-            'id': 'TX'
-        },
-        {
-            'name': 'Utah',
-            'id': 'UT'
-        },
-        {
-            'name': 'Vermont',
-            'id': 'VT'
-        },
-        {
-            'name': 'Virginia',
-            'id': 'VA'
-        },
-        {
-            'name': 'Washington',
-            'id': 'WA'
-        },
-        {
-            'name': 'West Virginia',
-            'id': 'WV'
-        },
-        {
-            'name': 'Wisconsin',
-            'id': 'WI'
-        },
-        {
-            'name': 'Wyoming',
-            'id': 'WY'
-        },
-        {
-            'name': 'District of Columbia',
-            'id': 'DC'
-        }];
+    const states = [{
+        'name': 'Select a State',
+        'id': 'None'
+    },
+    {
+        'name': 'Alabama',
+        'id': 'AL'
+    },
+    {
+        'name': 'Alaska',
+        'id': 'AK'
+    },
+    {
+        'name': 'Arizona',
+        'id': 'AZ'
+    },
+    {
+        'name': 'Arkansas',
+        'id': 'AR'
+    },
+    {
+        'name': 'California',
+        'id': 'CA'
+    },
+    {
+        'name': 'Colorado',
+        'id': 'CO'
+    },
+    {
+        'name': 'Connecticut',
+        'id': 'CT'
+    },
+    {
+        'name': 'Delaware',
+        'id': 'DE'
+    },
+    {
+        'name': 'Florida',
+        'id': 'FL'
+    },
+    {
+        'name': 'Georgia',
+        'id': 'GA'
+    },
+    {
+        'name': 'Hawaii',
+        'id': 'HI'
+    },
+    {
+        'name': 'Idaho',
+        'id': 'ID'
+    },
+    {
+        'name': 'Illinois',
+        'id': 'IL'
+    },
+    {
+        'name': 'Indiana',
+        'id': 'IN'
+    },
+    {
+        'name': 'Iowa',
+        'id': 'IA'
+    },
+    {
+        'name': 'Kansas',
+        'id': 'KS',
+        excludes: 'arkansas'
+    },
+    {
+        'name': 'Kentucky',
+        'id': 'KY'
+    },
+    {
+        'name': 'Louisiana',
+        'id': 'LA'
+    },
+    {
+        'name': 'Maine',
+        'id': 'ME'
+    },
+    {
+        'name': 'Maryland',
+        'id': 'MD'
+    },
+    {
+        'name': 'Massachusetts',
+        'id': 'MA'
+    },
+    {
+        'name': 'Michigan',
+        'id': 'MI'
+    },
+    {
+        'name': 'Minnesota',
+        'id': 'MN'
+    },
+    {
+        'name': 'Mississippi',
+        'id': 'MS'
+    },
+    {
+        'name': 'Missouri',
+        'id': 'MO'
+    },
+    {
+        'name': 'Montana',
+        'id': 'MT'
+    },
+    {
+        'name': 'Nebraska',
+        'id': 'NE'
+    },
+    {
+        'name': 'Nevada',
+        'id': 'NV'
+    },
+    {
+        'name': 'New Hampshire',
+        'id': 'NH'
+    },
+    {
+        'name': 'New Jersey',
+        'id': 'NJ'
+    },
+    {
+        'name': 'New Mexico',
+        'id': 'NM'
+    },
+    {
+        'name': 'New York',
+        'id': 'NY'
+    },
+    {
+        'name': 'North Carolina',
+        'id': 'NC'
+    },
+    {
+        'name': 'North Dakota',
+        'id': 'ND'
+    },
+    {
+        'name': 'Ohio',
+        'id': 'OH'
+    },
+    {
+        'name': 'Oklahoma',
+        'id': 'OK'
+    },
+    {
+        'name': 'Oregon',
+        'id': 'OR'
+    },
+    {
+        'name': 'Pennsylvania',
+        'id': 'PA'
+    },
+    {
+        'name': 'Rhode Island',
+        'id': 'RI'
+    },
+    {
+        'name': 'South Carolina',
+        'id': 'SC'
+    },
+    {
+        'name': 'South Dakota',
+        'id': 'SD'
+    },
+    {
+        'name': 'Tennessee',
+        'id': 'TN'
+    },
+    {
+        'name': 'Texas',
+        'id': 'TX'
+    },
+    {
+        'name': 'Utah',
+        'id': 'UT'
+    },
+    {
+        'name': 'Vermont',
+        'id': 'VT'
+    },
+    {
+        'name': 'Virginia',
+        'id': 'VA',
+        excludes: 'west virginia,west_virginia'
+    },
+    {
+        'name': 'Washington',
+        'id': 'WA'
+    },
+    {
+        'name': 'West Virginia',
+        'id': 'WV'
+    },
+    {
+        'name': 'Wisconsin',
+        'id': 'WI'
+    },
+    {
+        'name': 'Wyoming',
+        'id': 'WY'
+    },
+    {
+        'name': 'District of Columbia',
+        'id': 'DC'
+    }];
 
     init();
 

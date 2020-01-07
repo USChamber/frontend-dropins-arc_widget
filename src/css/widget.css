@@ -27,13 +27,13 @@
 } */
 
 .arc-images-list {
-    padding: 1em;
+    padding: 1em 0;
 }
 
 #ARC_Widget .arc-image-container {
     position: relative;
-    width: 250px;
-    height: 140px;
+    width: 300px;
+    height: 175px;
     overflow: hidden;
     display: inline-block;
     margin: .4em;
@@ -42,7 +42,7 @@
 
 .arc-image-container .arc-image-text {
     color: transparent;
-    line-height: 150px;
+    line-height: 170px;
     font-weight: bold;
     position: absolute;
     top: 0;

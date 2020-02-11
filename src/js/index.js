@@ -1,21 +1,21 @@
 import "core-js/stable";
 import "regenerator-runtime/runtime";
-
-const filepath = `/ARC_Content/${document.currentScript.getAttribute('filepath')}`;
-console.log('filepath', filepath);
+const directoryName = document.currentScript.getAttribute('filepath');
+console.log('directoryName', directoryName);
 
 (function () {
 
     const lambdaBaseUrl = 'https://dev.uschamber.com/services/arc';
     // const lambdaBaseUrl = 'http://localhost:9999';
     const token = '__INSERT_PHOTO_WIDGET__';
-    const s3BaseUrl = 'https://uschamber-webassets.s3.amazonaws.com/uschamber.com/interactives/arc'
+    const s3BaseUrl = 'https://uschamber-webassets.s3.amazonaws.com/uschamber.com/interactives/arc';
     // const s3BaseUrl = './'
 
     const globalVars = {};
 
     const init = async () => {
         const pTags = document.querySelectorAll('.field-item p');
+        console.log('pTags', pTags);
         for (let i = 0; i < pTags.length; i++) {
             if (pTags[i].innerHTML.includes(token)) {
                 globalVars.tokenLocation = pTags[i];
@@ -24,39 +24,43 @@ console.log('filepath', filepath);
             }
         }
         if (globalVars.tokenLocation) {
-            console.log('found a token')
+            console.log('found a token');
             addCss();
-            await buildWidget({});
-            setupLazyLoading();
+            try {
+                await buildWidget({});
+            } catch (e) {
+                console.warn('A problem occurred building the ARC Photo Widget', e);
+            }
+            // setupLazyLoading();
         }
-    }
+    };
 
     /**
      * Sets up lazy loading for all images in view with the `lazy` class assigned
      */
-    const setupLazyLoading = () => {
-        let lazyImages = [].slice.call(document.querySelectorAll(".lazy"));
-        if ("IntersectionObserver" in window) {
-            let lazyImageObserver = new IntersectionObserver((entries, observer) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        let lazyImage = entry.target;
-                        lazyImage.style.backgroundImage = lazyImage.dataset.backgroundImage;
-                        lazyImage.classList.remove("lazy");
-                        lazyImageObserver.unobserve(lazyImage);
-                    }
-                });
-            });
-            lazyImages.forEach(lazyImage => {
-                lazyImageObserver.observe(lazyImage);
-            });
-        } else {
-            lazyImages.forEach(lazyImage => {
-                lazyImage.style.backgroundImage = lazyImage.dataset.backgroundImage;
-                lazyImage.classList.remove("lazy");
-            })
-        }
-    }
+    // const setupLazyLoading = () => {
+    //     let lazyImages = [].slice.call(document.querySelectorAll(".lazy"));
+    //     if ("IntersectionObserver" in window) {
+    //         let lazyImageObserver = new IntersectionObserver((entries, observer) => {
+    //             entries.forEach(entry => {
+    //                 if (entry.isIntersecting) {
+    //                     let lazyImage = entry.target;
+    //                     lazyImage.style.backgroundImage = lazyImage.dataset.backgroundImage;
+    //                     lazyImage.classList.remove("lazy");
+    //                     lazyImageObserver.unobserve(lazyImage);
+    //                 }
+    //             });
+    //         });
+    //         lazyImages.forEach(lazyImage => {
+    //             lazyImageObserver.observe(lazyImage);
+    //         });
+    //     } else {
+    //         lazyImages.forEach(lazyImage => {
+    //             lazyImage.style.backgroundImage = lazyImage.dataset.backgroundImage;
+    //             lazyImage.classList.remove("lazy");
+    //         })
+    //     }
+    // }
 
     /**
      * Builds the widget within the tokenLocation as stored in globalVars
@@ -78,11 +82,11 @@ console.log('filepath', filepath);
                 el: widgetContainer,
                 children: [buildSelector(currentFilter.id)]
             });
-            addImages('StateSpecific', getStateById('AL'))
+            addImages('StateSpecific', getStateById('AL'));
         }
         toggleLoadingGif(widgetContainer);
         return images;
-    }
+    };
 
     /**
      * Adds the images into the view
@@ -96,6 +100,7 @@ console.log('filepath', filepath);
             const images = await getImages();
             let imgEls = [];
             filterImages(images, currentFilter)
+                .sort((a, b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0))
                 .forEach(image => {
                     imgEls.push({
                         el: new Element({ el: 'div', className: 'arc-image-container', onclick: clickImage, attributes: { 'download-url': image.downloadUrl, 'display-url': image.displayUrl, 'name': image.name } }),
@@ -103,12 +108,12 @@ console.log('filepath', filepath);
                             el: new Element({ el: 'label', className: 'arc-image-text', innerHTML: 'Click to Preview' })
                         },
                         {
-                            el: new Element({ el: 'div', id: image.id, className: 'arc-image lazy', title: image.name, style: { backgroundImage: `url(${s3BaseUrl}/img/placeholder-image-300x180.png)` }, attributes: { 'data-background-image': `url(${image.displayUrl})` } })
+                            el: new Element({ el: 'div', id: image.id, className: 'arc-image lazy', title: image.name, style: { backgroundImage: `url(${image.displayUrl})` }, attributes: { 'data-background-image': `url(${image.displayUrl})` } })
                         }]
                     });
                 });
-            if (!imgEls.length) {
-                imgEls.push({ el: new Element({ el: 'h3', innerHTML: 'No images found for this state' }) });
+            if (!imgEls.length && locationId != 'ARC_Widget') {
+                imgEls.push({ el: new Element({ el: 'h3', innerHTML: 'No images found' }) });
             }
             const containerId = `ARC_${locationId}_ImageList`;
             remove(document.getElementById(containerId));
@@ -123,7 +128,7 @@ console.log('filepath', filepath);
         } catch (e) {
             console.log('error adding images', e);
         }
-    }
+    };
 
     /**
      * Toggles the loading gif within the given widgetContainer
@@ -144,7 +149,7 @@ console.log('filepath', filepath);
         } else {
             remove(loadingGif);
         }
-    }
+    };
 
     /**
      * Builds the HTML `select` element and fills it with states
@@ -152,10 +157,10 @@ console.log('filepath', filepath);
      * @returns HTML Select Element
      */
     const buildSelector = (stateId) => {
-        const container = new Element({ el: 'div', id: 'StateSpecific' })
+        const container = new Element({ el: 'div', id: 'StateSpecific' });
         const header = new Element({ el: 'h2', className: 'block-lined', style: { paddingBottom: '.1em' } });
         // const headerText = new Element({ el: 'span', innerHTML: 'State-specific Images' });
-        const selectList = new Element({ el: 'div', className: 'selectlist', id: 'ARC_SelectContainer' })
+        const selectList = new Element({ el: 'div', className: 'selectlist', id: 'ARC_SelectContainer' });
         const select = new Element({ el: 'select', id: 'ARC_Select', className: 'form-select', onchange: changeSelect });
         const options = [];
         states.forEach(state => {
@@ -175,7 +180,7 @@ console.log('filepath', filepath);
                 }]
             }]
         };
-    }
+    };
 
     /**
      * GENERIC FUNCTIONS FOR DOM MANIPULATION
@@ -205,7 +210,7 @@ console.log('filepath', filepath);
             element.style[name] = args.style[name];
         }
         for (const name in args.attributes) {
-            element.setAttribute(name, args.attributes[name])
+            element.setAttribute(name, args.attributes[name]);
         }
         return element;
     }
@@ -218,7 +223,7 @@ console.log('filepath', filepath);
         if (!curr.el) return;
         if (!curr.children) return;
         for (let i = 0; i < curr.children.length; i++) {
-            curr.el.appendChild(curr.children[i].el)
+            curr.el.appendChild(curr.children[i].el);
             if (curr.children[i].children) {
                 render(curr.children[i]);
             }
@@ -231,7 +236,7 @@ console.log('filepath', filepath);
      */
     const hideEl = (el) => {
         if (el) el.style.display = 'none';
-    }
+    };
 
     /**
      * Applies css of `display: block` to an HTML element
@@ -240,7 +245,7 @@ console.log('filepath', filepath);
      */
     const showEl = (el, style) => {
         if (el) el.style.display = style || 'block';
-    }
+    };
 
     /**
      * Removes an HTML element from the DOM
@@ -248,7 +253,7 @@ console.log('filepath', filepath);
      */
     const remove = el => {
         if (el) el.parentNode.removeChild(el);
-    }
+    };
 
     /**
      * 
@@ -269,7 +274,7 @@ console.log('filepath', filepath);
                             el: new Element({ el: 'button', id: 'ARC_LightboxExit', onclick: clickExitButton })
                         },
                         {
-                            el: new Element({ el: 'h4', id: 'ARC_LightboxTitle', innerHTML: name })
+                            el: new Element({ el: 'h4', id: 'ARC_LightboxTitle', innerHTML: 'Use the buttons below to download or share this graphic' })
                         }]
                     },
                     {
@@ -292,8 +297,8 @@ console.log('filepath', filepath);
                     }]
                 }]
             }]
-        })
-    }
+        });
+    };
 
     /**
      * DATA PARSING
@@ -306,22 +311,19 @@ console.log('filepath', filepath);
      * @param {array} images - An array of image objects {id: '', downloadUrl: '', displayUrl: '', name: ''}
      * @returns an object `{containsStateSpecificImages: Bool, parsedImages: Array}`
      */
-    const findStateSpecificImages = (images) => {
+    const findStateSpecificImages = images => {
         let contains = false;
         const parsedImages = images.map(image => {
             if (!image) { image = {}; }
             states.forEach(state => {
-                if (image.name.toLowerCase().includes(`_${state.id.toLowerCase()} _`)) {
-                    contains = true;
-                    image.stateSpecific = true;
-                }
-                if (image.name.toLowerCase().includes(state.name.toLowerCase())) {
+                if (isStateSpecificImage(state.id, state.name, image.name, state.excludes)) {
                     contains = true;
                     image.stateSpecific = true;
                 }
             });
             return image;
         });
+        console.log('parsedImages', parsedImages);
         return { containsStateSpecificImages: contains, parsedImages: parsedImages };
     };
 
@@ -342,29 +344,33 @@ console.log('filepath', filepath);
             if (currentFilter.id === 'None') {
                 currentFilter = states[1];
             }
-            let included = false;
-            const name = image.name.toLowerCase();
-            const filterId = `_${currentFilter.id.toLowerCase()}_`;
-            const filterName = currentFilter.name.toLowerCase();
-            const filterNameUnderscored = filterName.split(' ').join('_');
-            if (name.includes(filterId)) {
-                return true;
-            }
-            if (name.includes(filterName) || name.includes(filterNameUnderscored)) {
-                // this is a fuzzy match. Don't want to include arkanasas with kansas or virginia for west virginia
-                included = true;
-                if (currentFilter.excludes) {
-                    const excludes = currentFilter.excludes.split(',');
-                    excludes.forEach(exclude => {
-                        if (name.includes(exclude)) included = false;
-                    });
-                }
-            }
-            return included;
+            return isStateSpecificImage(currentFilter.id, currentFilter.name, image.name, currentFilter.excludes);
         });
         console.log('Filtered to %s images', filtered.length);
         return filtered;
-    }
+    };
+
+    const isStateSpecificImage = (filterId, filterName, name, excludes) => {
+        let included = false;
+        name = name.toLowerCase();
+        filterId = `_${filterId.toLowerCase()}_`;
+        filterName = filterName.toLowerCase();
+        const filterNameUnderscored = filterName.split(' ').join('_');
+        if (name.includes(filterId)) {
+            return true;
+        }
+        if (name.includes(filterName) || name.includes(filterNameUnderscored)) {
+            // this is a fuzzy match. Don't want to include arkanasas with kansas or virginia for west virginia
+            included = true;
+            if (excludes) {
+                excludes = excludes.split(',');
+                excludes.forEach(exclude => {
+                    if (name.includes(exclude)) included = false;
+                });
+            }
+        }
+        return included;
+    };
 
     /**
      * Returns state object based off given ID
@@ -387,22 +393,22 @@ console.log('filepath', filepath);
     const changeSelect = async ev => {
         // states.splice(0, 1);
         const stateImages = await addImages('StateSpecific', getStateById(ev.currentTarget.value));
-        setupLazyLoading();
-    }
+        // setupLazyLoading();
+    };
 
     const clickImage = ev => {
         loadOverlay(ev.currentTarget.getAttribute('display-url'), ev.currentTarget.getAttribute('name'), ev.currentTarget.getAttribute('download-url'));
-    }
+    };
 
     const clickExitButton = () => {
         remove(document.getElementById('ARC_Overlay'));
-    }
+    };
 
     const clickEmailButton = () => {
         showEl(document.getElementById('ARC_EmailAddress'), 'inline-block');
         showEl(document.getElementById('ARC_EmailSubmitBtn'), 'inline-block');
         hideEl(document.getElementById('ARC_LightboxEmail'));
-    }
+    };
 
     const clickEmailSubmitButton = async () => {
         const downloadUrl = document.getElementById('ARC_LightboxDownload').href;
@@ -416,17 +422,17 @@ console.log('filepath', filepath);
         }
         console.log('email send response', response);
         emailInput.value = '';
-        hideEl(document.getElementById('ARC_EmailSubmitBtn'))
+        hideEl(document.getElementById('ARC_EmailSubmitBtn'));
         hideEl(emailInput);
         showEl(document.getElementById('ARC_LightboxEmail'), 'inline-block');
         const successMessage = new Element({ el: 'div', id: 'ARC_SuccessMessage', innerHTML: 'Sent!', style: { display: 'inline-block', verticalAlign: 'middle' } });
         document.getElementById('ARC_LightboxControlPanel').prepend(successMessage);
         window.setTimeout(() => {
             const successMessage = document.getElementById('ARC_SuccessMessage');
-            successMessage.parentNode.removeChild(successMessage)
+            successMessage.parentNode.removeChild(successMessage);
         }, 5000);
 
-    }
+    };
 
     /**
      * API INTERACTIONS
@@ -478,13 +484,16 @@ console.log('filepath', filepath);
     };
 
     const getImages = async () => {
+        console.log('checking localstorage', globalVars.images);
         if (globalVars.images) {
             console.log('Reusing %s images from local storage', globalVars.images.length);
             return (globalVars.images);
         }
+        console.log('pulling a fresh copy');
         try {
-            const response = await request('GET', `${lambdaBaseUrl}/files`, { json: true, params: { filepath: filepath } });
-            const tmp = findStateSpecificImages(response)
+            const response = await request('GET', `https://uschamber-webassets.s3.amazonaws.com/uschamber.com/arc/${directoryName.toLowerCase()}/data.json`, { json: true });
+            console.log('response from remote image server', response);
+            const tmp = findStateSpecificImages(response);
             globalVars.images = tmp.parsedImages;
             globalVars.containsStateSpecificImages = tmp.containsStateSpecificImages;
             console.log('Pulled %s images from dropbox', globalVars.images.length);
@@ -492,7 +501,7 @@ console.log('filepath', filepath);
         } catch (err) {
             console.warn('Error getting images', err);
         }
-    }
+    };
 
     const sendImageViaEmail = async (emailAddress, downloadUrl, previewUrl, message) => {
         try {
@@ -503,7 +512,7 @@ console.log('filepath', filepath);
         } catch (err) {
             console.log('Error sending mail', err);
         }
-    }
+    };
 
     /**
      * BULKY CRAP
@@ -522,7 +531,7 @@ console.log('filepath', filepath);
             style.appendChild(document.createTextNode(css));
         }
         head.appendChild(style);
-    }
+    };
 
     const states = [{
         'name': 'Select a State',
@@ -559,6 +568,10 @@ console.log('filepath', filepath);
     {
         'name': 'Delaware',
         'id': 'DE'
+    },
+    {
+        'name': 'District of Columbia',
+        'id': 'DC'
     },
     {
         'name': 'Florida',
@@ -682,6 +695,10 @@ console.log('filepath', filepath);
         'id': 'PA'
     },
     {
+        'name': 'Puerto Rico',
+        'id': 'PR'
+    },
+    {
         'name': 'Rhode Island',
         'id': 'RI'
     },
@@ -729,12 +746,18 @@ console.log('filepath', filepath);
     {
         'name': 'Wyoming',
         'id': 'WY'
-    },
-    {
-        'name': 'District of Columbia',
-        'id': 'DC'
     }];
 
-    init();
+    function docReady(fn) {
+        // see if DOM is already available
+        if (document.readyState === "complete" || document.readyState === "interactive") {
+            // call on next available tick
+            setTimeout(fn, 1);
+        } else {
+            document.addEventListener("DOMContentLoaded", fn);
+        }
+    }
 
-})()
+    docReady(init);
+
+})();

@@ -20,16 +20,17 @@ This widget accepts any file type that works with the `img` HTML5 tag. That said
 
 ### State-specific images
 
-This application looks at each image file's name to determine if any state-specific images are present. It looks for the state name as well as the state abbreviation surrounded by underscores. 
+This application looks at each image file's name to determine if any state-specific images are present. It looks for the full state name (with space or underscore separation e.g. michigan, new_hampshire, west virginia) and/or the state abbreviation (surrounded by underscores e.g. \_AZ_, \_ME_).
 
 The following table shows how some example filenames would be processed. 
 
-| Filename                                | Classification | Notes                                                            |
-| --------------------------------------- | -------------- | ---------------------------------------------------------------- |
-| usmca_01_problems in Michigan arise.jpg | "Michigan"     | can handle spaces and underscores in filename                    |
-| usmca_01_problems in michigan arise.jpg | "Michigan"     | interpretation is case insensitive                               |
-| usmca_01_mi_problems.jpg                | "Michigan"     | Understands abbreviations within underscores                     |
-| usmca_01_missing_numbers.jpg            | "General"      | Ignores the "mi" because it is not preceded and succeeded by `_` |
+| Filename                                | Classification | Notes                                                                                                                                                                            |
+| --------------------------------------- | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| usmca_01_problems in Michigan arise.jpg | "Michigan"     | can handle spaces and underscores in filename                                                                                                                                    |
+| usmca_01_problems in michigan arise.jpg | "Michigan"     | interpretation is case insensitive                                                                                                                                               |
+| usmca_01_mi_problems.jpg                | "Michigan"     | Understands abbreviations within underscores                                                                                                                                     |
+| usmca 222035 virginia problems.jpg      | "Virginia"     | If a trouble state like "virginia" or "kansas" are found (where they are subsets of other states) the system will verify that it there is no "west" or "ar" in the name as well. |
+| usmca_01_missing_numbers.jpg            | "General"      | Ignores the "mi" because it is not preceded and succeeded by `_`                                                                                                                 |
 
 
 ## Development

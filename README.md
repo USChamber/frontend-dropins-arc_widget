@@ -70,13 +70,15 @@ For example, if you want a filters for Award and Recipient, you could save your 
 
 Then in your HTML you would add a `filters` attribute with a comma separated list of filters. Note that you should use underscores in place of spaces. These will be replaced. Also, case matters. 
 
+```html
 <script
   src="./index.js"
   search
   filepath="dir-name"
   filters="Recipient,Award"
 ></script>
- 
+```
+
 Once you have the pieces in place, the app will read the filenames to and populate the filter dropdowns with the values supplied. Duplicates will be handled appropriately. 
 
 While you may supply as many filters as you want, end users will only be able to use a single filter at a time. Filters can be used in conjunction with search. 

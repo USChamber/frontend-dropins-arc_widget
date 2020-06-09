@@ -32,6 +32,54 @@ The following table shows how some example filenames would be processed.
 | usmca 222035 virginia problems.jpg      | "Virginia"     | If a trouble state like "virginia" or "kansas" are found (where they are subsets of other states) the system will verify that it there is no "west" or "ar" in the name as well. |
 | usmca_01_missing_numbers.jpg            | "General"      | Ignores the "mi" because it is not preceded and succeeded by `_`                                                                                                                 |
 
+### Search
+
+The search algorithm is agnostic to ordering and case. So for example, if you save a file as:
+
+`leadership_award_matt-BLOOMFIELD_2020.jpg`
+ 
+A user could find that image by searching any of the following (and more permuations not listed)
+ 
+* Bloomfield
+* Matt Leadership
+* Matt bloomfield award
+* Leadership bloomfield
+ 
+You can enable the search functionality by including ‘search’ as an attribute on the script tag. E.g. 
+
+```html 
+<script src=”/path/to/script” filename=”awards” search></script>
+```
+
+If you would like to customize the placeholder text you can add it as a value on the attribute: 
+
+```html
+<script src=”/path/to/script” filename=”awards” search="Search here..."></script>
+```
+
+### Custom Filters
+
+To add custom dropdown filters you will need to modify the filenames and then supply the script with the filter names as attributes. 
+
+For example, if you want a filters for Award and Recipient, you could save your files like so: 
+
+`Recipient:Jimmy_Dean-Award:Humility.jpg`
+`Recipient:Jane_Smith-Award:Honor.jpg`
+`Recipient:John_Doe-Award:Leadership.jpg`
+`Recipient:Alex_Hamilton-Award:Leadership.jpg`
+
+Then in your HTML you would add a `filters` attribute with a comma separated list of filters. Note that you should use underscores in place of spaces. These will be replaced. Also, case matters. 
+
+<script
+  src="./index.js"
+  search
+  filepath="dir-name"
+  filters="Recipient,Award"
+></script>
+ 
+Once you have the pieces in place, the app will read the filenames to and populate the filter dropdowns with the values supplied. Duplicates will be handled appropriately. 
+
+While you may supply as many filters as you want, end users will only be able to use a single filter at a time. Filters can be used in conjunction with search. 
 
 ## Development
 

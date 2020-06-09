@@ -63,10 +63,10 @@ To add custom dropdown filters you will need to modify the filenames and then su
 
 For example, if you want a filters for Award and Recipient, you could save your files like so: 
 
-`Recipient:Jimmy_Dean-Award:Humility.jpg`
-`Recipient:Jane_Smith-Award:Honor.jpg`
-`Recipient:John_Doe-Award:Leadership.jpg`
-`Recipient:Alex_Hamilton-Award:Leadership.jpg`
+* `Recipient:Jimmy_Dean-Award:Humility.jpg`
+* `Recipient:Jane_Smith-Award:Honor.jpg`
+* `Recipient:John_Doe-Award:Leadership.jpg`
+* `Recipient:Alex_Hamilton-Award:Leadership.jpg`
 
 Then in your HTML you would add a `filters` attribute with a comma separated list of filters. Note that you should use underscores in place of spaces. These will be replaced. Also, case matters. 
 

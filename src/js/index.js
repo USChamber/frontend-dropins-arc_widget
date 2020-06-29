@@ -12,6 +12,9 @@ var arcWidget = (function () {
   globalVars.includeSearch = document.currentScript.hasAttribute("search");
   globalVars.searchPlaceholder = document.currentScript.getAttribute("search");
   globalVars.filters = document.currentScript.getAttribute("filters");
+  globalVars.hideStateSpecific = document.currentScript.hasAttribute(
+    "hideStateSpecific"
+  );
   console.log("globalVars", globalVars);
 
   const init = async () => {
@@ -141,7 +144,10 @@ var arcWidget = (function () {
       currentFilter,
       globalVars.searchTerm
     );
-    if (globalVars.containsStateSpecificImages) {
+    if (
+      globalVars.containsStateSpecificImages &&
+      !globalVars.hideStateSpecific
+    ) {
       render({
         el: widgetContainer,
         children: [buildSelector(currentFilter.id)],
@@ -535,9 +541,11 @@ var arcWidget = (function () {
       if (globalVars.filters) {
         globalVars.parsedFilters = {};
         globalVars.filters.forEach((filter) => {
-          if (image.name.includes(filter.id)) {
+          console.log("filter...", filter.id);
+          if (image.name.includes(filter.id + "|")) {
+            console.log("image.name", image.name);
             const value = image.name
-              .split(`${filter.id}:`)[1]
+              .split(`${filter.id}|`)[1]
               .split("-")[0]
               .split(".")[0]
               .replace("_", " ");
@@ -601,7 +609,7 @@ var arcWidget = (function () {
           console.log("show all");
           return true;
         }
-        return image.name.includes(`${currentFilter.id}:${currentFilter.name}`);
+        return image.name.includes(`${currentFilter.id}|${currentFilter.name}`);
       }
     });
     console.log("Filtered to %s images", filtered.length);

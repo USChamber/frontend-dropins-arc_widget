@@ -1,13 +1,13 @@
 @import url('https://fonts.googleapis.com/css?family=Montserrat:400,700&display=swap');
 
-#ARC_Widget {
+.ARC_Widget {
     /* border: 1px solid #efefef; */
     /* padding: 1em; */
     text-align: center;
     font-family: "Montserrat", Helvetica, Arial, sans-serif;
 }
 
-#ARC_SelectContainer {
+.ARC_SelectContainer {
     width: 30%;
     min-width: 200px;
     margin: 0 auto;
@@ -30,7 +30,7 @@
     padding: 1em 0;
 }
 
-#ARC_Widget .arc-image-container {
+.ARC_Widget .arc-image-container {
     position: relative;
     width: 300px;
     height: 175px;
@@ -91,7 +91,7 @@
     position: absolute;
 }
 
-#ARC_Overlay {
+.ARC_Overlay {
     position: fixed;
     z-index: 99999;
     top: 0;
@@ -103,7 +103,7 @@
     background: rgba(0, 0, 0, .3);
 }
 
-div#ARC_Lightbox {
+div.ARC_Lightbox {
     width: 90%;
     max-height: 80vh;
     background: #2a2a2a;
@@ -117,13 +117,13 @@ div#ARC_Lightbox {
     overflow-x: hidden;
 }
 
-div#ARC_LightboxTopBar {
+div.ARC_LightboxTopBar {
     padding: 10px;
     text-align: center;
     border-bottom: 1px solid #555;
 }
 
-button#ARC_LightboxExit {
+button.ARC_LightboxExit {
     border: 0;
     font-size: 18px;
     padding: 5px 10px;
@@ -139,18 +139,18 @@ button#ARC_LightboxExit {
     background-repeat: no-repeat;
 }
 
-h4#ARC_LightboxTitle {
+h4.ARC_LightboxTitle {
     color: #FFF;
     display: inline-block;
     margin: 5px;
     font-family: "Montserrat", Helvetica, Arial, sans-serif;
 }
 
-img#ARC_LightboxImg {
+img.ARC_LightboxImg {
     max-height: 55vh;
 }
 
-div#ARC_LightboxControlPanel {
+div.ARC_LightboxControlPanel {
     padding: 10px;
     text-align: right;
     font-family: "Montserrat", Helvetica, Arial, sans-serif;
@@ -159,7 +159,7 @@ div#ARC_LightboxControlPanel {
     border-top: 1px solid #555;
 }
 
-button#ARC_EmailSubmitBtn:before {
+button.ARC_EmailSubmitBtn:before {
     content: "";
     background-image: url('https://uschamber-webassets.s3.amazonaws.com/uschamber.com/interactives/arc/img/paper-plane.png');
     background-size: cover;
@@ -171,7 +171,7 @@ button#ARC_EmailSubmitBtn:before {
     top: 7px;
 }
 
-button#ARC_LightboxEmail:before {
+button.ARC_LightboxEmail:before {
     content: "";
     background-image: url('https://uschamber-webassets.s3.amazonaws.com/uschamber.com/interactives/arc/img/envelope.png');
     background-size: cover;
@@ -183,11 +183,11 @@ button#ARC_LightboxEmail:before {
     top: 7px;
 }
 
-a#ARC_LightboxDownload {
+a.ARC_LightboxDownload {
     text-decoration: none;
 }
 
-a#ARC_LightboxDownload:before {
+a.ARC_LightboxDownload:before {
     content: "";
     background-image: url('https://uschamber-webassets.s3.amazonaws.com/uschamber.com/interactives/arc/img/download.png');
     background-size: cover;
@@ -222,7 +222,7 @@ a#ARC_LightboxDownload:before {
     background-color: #f76855;
 }
 
-input#ARC_EmailAddress {
+input.ARC_EmailAddress {
     font-size: 18px;
     padding: 4.5px;
     vertical-align: middle;

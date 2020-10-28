@@ -48,13 +48,21 @@ A user could find that image by searching any of the following (and more permuat
 You can enable the search functionality by including ‘search’ as an attribute on the script tag. E.g. 
 
 ```html 
-<script src=”/path/to/script” filename=”awards” search></script>
+<script 
+  src=”https://uschamber-webassets.s3.amazonaws.com/uschamber.com/interactives/arc/index.js”
+  filename=”awards” 
+  search
+></script>
 ```
 
 If you would like to customize the placeholder text you can add it as a value on the attribute: 
 
 ```html
-<script src=”/path/to/script” filename=”awards” search="Search here..."></script>
+<script 
+  src=”https://uschamber-webassets.s3.amazonaws.com/uschamber.com/interactives/arc/index.js”
+  filename=”awards” 
+  search="Search here..."
+></script>
 ```
 
 ### Custom Filters
@@ -72,7 +80,7 @@ Then in your HTML you would add a `filters` attribute with a comma separated lis
 
 ```html
 <script
-  src="./index.js"
+  src="https://uschamber-webassets.s3.amazonaws.com/uschamber.com/interactives/arc/index.js"
   search
   filepath="dir-name"
   filters="Recipient,Award"
@@ -82,6 +90,42 @@ Then in your HTML you would add a `filters` attribute with a comma separated lis
 Once you have the pieces in place, the app will read the filenames to and populate the filter dropdowns with the values supplied. Duplicates will be handled appropriately. 
 
 While you may supply as many filters as you want, end users will only be able to use a single filter at a time. Filters can be used in conjunction with search. 
+
+### Target (Multiple widgets on one page)
+
+If you plan on deploying multiple ARC Widgets to a single page, you can simply add multiple scripts and multiple target tokens. 
+
+E.g.
+
+```html
+<p>__INSERT_PHOTO_WIDGET__</p>
+<p>__INSERT_PHOTO_WIDGET__</p>
+<script
+  src="https://uschamber-webassets.s3.amazonaws.com/uschamber.com/interactives/arc/index.js"
+  filepath="dir-name-1"
+></script>
+<script
+  src="https://uschamber-webassets.s3.amazonaws.com/uschamber.com/interactives/arc/index.js"
+  filepath="dir-name-2"
+></script>
+```
+
+When order matters you can use IDs to assign them. Otherwise they will be ordered based off of loading order (most of the time it will match the order of the scripts). 
+
+```html
+<p id="ARC_1">__INSERT_PHOTO_WIDGET__</p>
+<p id="ARC_2">__INSERT_PHOTO_WIDGET__</p>
+<script
+  src="https://uschamber-webassets.s3.amazonaws.com/uschamber.com/interactives/arc/index.js"
+  filepath="dir-name-1"
+  target="ARC_2"
+></script>
+<script
+  src="https://uschamber-webassets.s3.amazonaws.com/uschamber.com/interactives/arc/index.js"
+  filepath="dir-name-2"
+  target="ARC_1"
+></script>
+```
 
 ## Development
 

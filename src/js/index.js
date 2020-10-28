@@ -15,18 +15,24 @@ var arcWidget = (function () {
   globalVars.hideStateSpecific = document.currentScript.hasAttribute(
     "hideStateSpecific"
   );
+  globalVars.targetId = document.currentScript.getAttribute("target");
   console.log("globalVars", globalVars);
 
   const init = async () => {
-    const pTags = document.querySelectorAll(".field-item p");
-    for (let i = 0; i < pTags.length; i++) {
-      if (pTags[i].innerHTML.includes(token)) {
-        globalVars.tokenLocation = pTags[i];
-        pTags[i].innerHTML = "";
-        break;
+    if (globalVars.targetId && globalVars.targetId.length) {
+      globalVars.tokenLocation = document.getElementById(globalVars.targetId);
+    } else {
+      const pTags = document.querySelectorAll(".field-item p");
+      for (let i = 0; i < pTags.length; i++) {
+        if (pTags[i].innerHTML.includes(token)) {
+          globalVars.tokenLocation = pTags[i];
+          // pTags[i].innerHTML = "";
+          break;
+        }
       }
     }
     if (globalVars.tokenLocation) {
+      globalVars.tokenLocation.innerHTML = ""
       addCss();
       try {
         await getImages();
@@ -42,9 +48,10 @@ var arcWidget = (function () {
    * Builds the widget within the tokenLocation as stored in globalVars
    */
   const buildWidget = async (currentFilter) => {
+    globalVars.tok = globalVars.targetId ? globalVars.targetId : new Date().getTime();
     console.log("building widget");
-    remove(document.getElementById("ARC_Widget"));
-    const widgetContainer = new Element({ el: "div", id: "ARC_Widget" });
+    remove(document.getElementById("ARC_Widget_${globalVars.tok}"));
+    const widgetContainer = new Element({ el: "div", id: `ARC_Widget_${globalVars.tok}`, className: 'ARC_Widget' });
     render({
       el: globalVars.tokenLocation,
       children: [
@@ -60,7 +67,7 @@ var arcWidget = (function () {
           {
             el: new Element({
               el: "input",
-              id: "ARC_Search",
+              id: `ARC_Search_${globalVars.tok}`,
               type: "text",
               placeholder: `${globalVars.searchPlaceholder || "Search..."}`,
               onkeyup: handleTextInput,
@@ -133,14 +140,14 @@ var arcWidget = (function () {
         {
           el: new Element({
             el: "div",
-            id: "General",
+            id: `General_${globalVars.tok}`,
           }),
         },
       ],
     });
     toggleLoadingGif(widgetContainer);
     const images = await addImages(
-      "General",
+      `General_${globalVars.tok}`,
       currentFilter,
       globalVars.searchTerm
     );
@@ -155,7 +162,7 @@ var arcWidget = (function () {
       console.log("===> adding from buildWidget");
       globalVars.selectedState = "AL";
       await addImages(
-        "StateSpecific",
+        `StateSpecific_${globalVars.tok}`,
         { ...getStateById(globalVars.selectedState), type: "state" },
         globalVars.searchTerm
       );
@@ -171,7 +178,9 @@ var arcWidget = (function () {
    * @returns a promise
    */
   const addImages = async (locationId, currentFilter, searchTerm) => {
+    console.log('addImages',locationId);
     const widgetContainer = document.getElementById(locationId);
+    console.log('found widget container', widgetContainer)
     try {
       const images = await getImages();
       let imgEls = [];
@@ -218,6 +227,7 @@ var arcWidget = (function () {
         });
       }
       const containerId = `${locationId}_ImageList`;
+      console.log('to containerId', containerId)
       remove(document.getElementById(containerId));
       const html = {
         el: widgetContainer,
@@ -243,7 +253,7 @@ var arcWidget = (function () {
    * @param {element} widgetContainer - HTML element where gif should appear
    */
   const toggleLoadingGif = (container) => {
-    const loadingGif = document.getElementById("ARC_LoadingGif");
+    const loadingGif = document.getElementById(`ARC_LoadingGif_${globalVars.tok}`);
     if (!loadingGif) {
       render({
         el: container,
@@ -251,7 +261,7 @@ var arcWidget = (function () {
           {
             el: new Element({
               el: "div",
-              id: "ARC_LoadingGif",
+              id: `ARC_LoadingGif_${globalVars.tok}`,
               style: { textAlign: "center", padding: "1em" },
             }),
             children: [
@@ -276,7 +286,7 @@ var arcWidget = (function () {
    * @returns HTML Select Element
    */
   const buildSelector = (stateId) => {
-    const container = new Element({ el: "div", id: "StateSpecific" });
+    const container = new Element({ el: "div", id: `StateSpecific_${globalVars.tok}` });
     const header = new Element({
       el: "h2",
       className: "block-lined",
@@ -285,12 +295,12 @@ var arcWidget = (function () {
     // const headerText = new Element({ el: 'span', innerHTML: 'State-specific Images' });
     const selectList = new Element({
       el: "div",
-      className: "selectlist",
-      id: "ARC_SelectContainer",
+      className: "selectlist ARC_SelectContainer",
+      id: `ARC_SelectContainer_${globalVars.tok}`,
     });
     const select = new Element({
       el: "select",
-      id: "ARC_Select",
+      id: `ARC_Select_${globalVars.tok}`,
       className: "form-select",
       onchange: handleStateDropdownChange,
     });
@@ -415,27 +425,30 @@ var arcWidget = (function () {
         {
           el: new Element({
             el: "div",
-            id: "ARC_Overlay",
+            id: `ARC_Overlay_${globalVars.tok}`,
+            className: 'ARC_Overlay',
             style: { display: "block" },
           }),
           children: [
             {
-              el: new Element({ el: "div", id: "ARC_Lightbox" }),
+              el: new Element({ el: "div", id: `ARC_Lightbox_${globalVars.tok}`, className: 'ARC_Lightbox' }),
               children: [
                 {
-                  el: new Element({ el: "div", id: "ARC_LightboxTopBar" }),
+                  el: new Element({ el: "div", id: `ARC_LightboxTopBar_${globalVars.tok}`, className: 'ARC_LightboxTopBar' }),
                   children: [
                     {
                       el: new Element({
                         el: "button",
-                        id: "ARC_LightboxExit",
+                        id: `ARC_LightboxExit_${globalVars.tok}`,
+                        className: 'ARC_LightboxExit',
                         onclick: clickExitButton,
                       }),
                     },
                     {
                       el: new Element({
                         el: "h4",
-                        id: "ARC_LightboxTitle",
+                        className: 'ARC_LightboxTitle',
+                        id: `ARC_LightboxTitle_${globalVars.tok}`,
                         innerHTML:
                           "Use the buttons below to download or share this graphic",
                       }),
@@ -445,20 +458,23 @@ var arcWidget = (function () {
                 {
                   el: new Element({
                     el: "img",
-                    id: "ARC_LightboxImg",
+                    id: `ARC_LightboxImg_${globalVars.tok}`,
+                    className: 'ARC_LightboxImg',
                     src: displayUrl,
                   }),
                 },
                 {
                   el: new Element({
                     el: "div",
-                    id: "ARC_LightboxControlPanel",
+                    id: `ARC_LightboxControlPanel_${globalVars.tok}`,
+                    className: 'ARC_LightboxControlPanel',
                   }),
                   children: [
                     {
                       el: new Element({
                         el: "input",
-                        id: "ARC_EmailAddress",
+                        id: `ARC_EmailAddress_${globalVars.tok}`,
+                        className: 'ARC_EmailAddress',
                         name: "email",
                         type: "email",
                         style: { display: "none" },
@@ -468,9 +484,9 @@ var arcWidget = (function () {
                     {
                       el: new Element({
                         el: "button",
-                        id: "ARC_EmailSubmitBtn",
+                        id: `ARC_EmailSubmitBtn_${globalVars.tok}`,
                         innerHTML: "Send",
-                        className: "control-panel-btn",
+                        className: "control-panel-btn ARC_EmailSubmitBtn",
                         style: { display: "none" },
                         onclick: clickEmailSubmitButton,
                       }),
@@ -478,18 +494,18 @@ var arcWidget = (function () {
                     {
                       el: new Element({
                         el: "button",
-                        id: "ARC_LightboxEmail",
+                        id: `ARC_LightboxEmail_${globalVars.tok}`,
                         innerHTML: "Email",
-                        className: "control-panel-btn",
+                        className: "control-panel-btn ARC_LightboxEmail",
                         onclick: clickEmailButton,
                       }),
                     },
                     {
                       el: new Element({
                         el: "a",
-                        id: "ARC_LightboxDownload",
+                        id: `ARC_LightboxDownload_${globalVars.tok}`,
                         innerHTML: "Download",
-                        className: "control-panel-btn",
+                        className: "control-panel-btn ARC_LightboxDownload",
                         href: iOS ? displayUrl : downloadUrl,
                       }),
                     },
@@ -667,21 +683,21 @@ var arcWidget = (function () {
    */
 
   const handleStateDropdownChange = async (ev) => {
-    if (document.getElementById("ARC_Search"))
-      document.getElementById("ARC_Search").value = "";
+    if (document.getElementById(`ARC_Search_${globalVars.tok}`))
+      document.getElementById(`ARC_Search_${globalVars.tok}`).value = "";
     globalVars.searchTerm = "";
     globalVars.selectedState = ev.currentTarget.value;
     console.log("===> adding from handleStateDropdownChange");
     await addImages(
-      "StateSpecific",
+      `StateSpecific_${globalVars.tok}`,
       { ...getStateById(ev.currentTarget.value), type: "state" },
       globalVars.searchTerm
     );
   };
 
   const handleFilterSelect = async (ev) => {
-    if (document.getElementById("ARC_Search"))
-      document.getElementById("ARC_Search").value = "";
+    if (document.getElementById(`ARC_Search_${globalVars.tok}`))
+      document.getElementById(`ARC_Search_${globalVars.tok}`).value = "";
     globalVars.searchTerm = "";
     globalVars.selectedState = ev.currentTarget.value;
     // need to get the filter set it came from
@@ -695,29 +711,29 @@ var arcWidget = (function () {
     }
     // grab images
     await addImages(
-      "General",
+      `General_${globalVars.tok}`,
       { id: filterSet, name: ev.currentTarget.value || "none", type: "custom" },
       globalVars.searchTerm
     );
   };
 
   const handleTextInput = async (ev) => {
-    globalVars.searchTerm = document.getElementById("ARC_Search").value;
+    globalVars.searchTerm = document.getElementById(`ARC_Search_${globalVars.tok}`).value;
     console.log("===> adding from handleTextInput");
     await addImages(
-      "General",
+      `General_${globalVars.tok}`,
       getStateById(ev.currentTarget.value),
       globalVars.searchTerm
     );
-    if (document.getElementById("StateSpecific")) {
+    if (document.getElementById(`StateSpecific_${globalVars.tok}`)) {
       if (globalVars.searchTerm) {
         console.log("hiding");
-        document.getElementById("StateSpecific").style.display = "none";
+        document.getElementById(`StateSpecific_${globalVars.tok}`).style.display = "none";
       } else {
         console.log("showing");
-        document.getElementById("StateSpecific").style.display = "block";
+        document.getElementById(`StateSpecific_${globalVars.tok}`).style.display = "block";
         await addImages(
-          "StateSpecific",
+          `StateSpecific_${globalVars.tok}`,
           { ...getStateById(globalVars.selectedState), type: "state" },
           globalVars.searchTerm
         );
@@ -734,20 +750,20 @@ var arcWidget = (function () {
   };
 
   const clickExitButton = () => {
-    remove(document.getElementById("ARC_Overlay"));
+    remove(document.getElementById(`ARC_Overlay_${globalVars.tok}`));
   };
 
   const clickEmailButton = () => {
-    showEl(document.getElementById("ARC_EmailAddress"), "inline-block");
-    showEl(document.getElementById("ARC_EmailSubmitBtn"), "inline-block");
-    hideEl(document.getElementById("ARC_LightboxEmail"));
+    showEl(document.getElementById(`ARC_EmailAddress_${globalVars.tok}`), "inline-block");
+    showEl(document.getElementById(`ARC_EmailSubmitBtn_${globalVars.tok}`), "inline-block");
+    hideEl(document.getElementById(`ARC_LightboxEmail_${globalVars.tok}`));
   };
 
   const clickEmailSubmitButton = async () => {
-    const downloadUrl = document.getElementById("ARC_LightboxDownload").href;
-    const previewUrl = document.getElementById("ARC_LightboxImg").src;
-    const emailInput = document.getElementById("ARC_EmailAddress");
-    const message = document.getElementById("ARC_EmailMessage"); // doesn't exist yet
+    const downloadUrl = document.getElementById(`ARC_LightboxDownload_${globalVars.tok}`).href;
+    const previewUrl = document.getElementById(`ARC_LightboxImg_${globalVars.tok}`).src;
+    const emailInput = document.getElementById(`ARC_EmailAddress_${globalVars.tok}`);
+    const message = document.getElementById(`ARC_EmailMessage_${globalVars.tok}`); // doesn't exist yet
     const response = await sendImageViaEmail(
       emailInput.value,
       downloadUrl,
@@ -762,18 +778,18 @@ var arcWidget = (function () {
     }
     console.log("email send response", response);
     emailInput.value = "";
-    hideEl(document.getElementById("ARC_EmailSubmitBtn"));
+    hideEl(document.getElementById(`ARC_EmailSubmitBtn_${globalVars.tok}`));
     hideEl(emailInput);
-    showEl(document.getElementById("ARC_LightboxEmail"), "inline-block");
+    showEl(document.getElementById(`ARC_LightboxEmail_${globalVars.tok}`), "inline-block");
     const successMessage = new Element({
       el: "div",
-      id: "ARC_SuccessMessage",
+      id: `ARC_SuccessMessage_${globalVars.tok}`,
       innerHTML: "Sent!",
       style: { display: "inline-block", verticalAlign: "middle" },
     });
-    document.getElementById("ARC_LightboxControlPanel").prepend(successMessage);
+    document.getElementById(`ARC_LightboxControlPanel_${globalVars.tok}`).prepend(successMessage);
     window.setTimeout(() => {
-      const successMessage = document.getElementById("ARC_SuccessMessage");
+      const successMessage = document.getElementById(`ARC_SuccessMessage_${globalVars.tok}`);
       successMessage.parentNode.removeChild(successMessage);
     }, 5000);
   };
